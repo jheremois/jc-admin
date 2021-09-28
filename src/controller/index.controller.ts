@@ -1,40 +1,74 @@
+import {Request, Response} from "express";
 import multer from "multer";
+import * as fs from "fs";
 
-var uploading = (origin: string, req: any, res: any) =>{
+class Controllers {
 
-    const storageEngine = multer.diskStorage({
-        destination:  origin,
-        filename:  (req, file, cb) => {
-            cb(null, file.originalname);
-        }
-     })
-     
-     const uploadImage = multer({
-        storage: storageEngine,
-        limits: {fileSize: 100000000}
-     }).single('image');
+    private main = "C:/Users/jhere/Desktop/"
 
-    uploadImage(req, res, (err) => {
-        if (err) {
-            err.message = 'The file is so heavy for my service';
-            return res.send(err);
-        }
+    public filesListPath = async (req: Request, res: Response)=>{
 
-        console.log(req.file);
-        res.send(req.body);
+        const paths: any = []
 
-    });
+        const reference: any = `C:/Users/jhere/Desktop/${req.params.path}`
+        
+        await fs.readdir(reference.replace('-', '/'), async(err, files) => {
+            await files.forEach(element => {
+                paths.push(element)
+            });
+
+            res.send(paths)
+        })
+        
+        
+    }
+
+    public filesList = async (req: Request, res: Response)=>{
+
+        const paths: any = []
+
+        await fs.readdir(`${this.main}`, async(err, files) => {
+            await files.forEach(element => {
+                paths.push(element)
+                console.log(paths);
+            });
+
+            res.send(paths)
+        })
+        
+    }
+    
+
+
+    // controllador de subida de archivos: 
+    public upload = (req: any, res: any) => {
+
+        const storageEngine = multer.diskStorage({
+            destination:  "C:/Users/jhere/Desktop/",// Roy Que esta ruta sea un parametro, que el req.body.lo-que-sea sea quien deciada donde se guardara el archivo
+            filename:  (req, file, cb) => {
+                cb(null, file.originalname);
+            }
+        })
+        
+        const uploadImage = multer({
+            storage: storageEngine,
+            limits: {fileSize: 100000000}
+        }).single('image');
+        
+        uploadImage(req, res, (err) => {
+            if (err) {
+                err.message = 'The file is so heavy for my service';
+                return res.send(err);
+            }
+        
+            console.log(req.file);
+            res.send(req.file);
+        
+        });
+    
+    }
+    
 
 }
 
-const upload = (req: any, res: any) => {
-      
-    uploading("C:/Users/jhere/Desktop/lolo", req, res)
-
-}
-
-const controllers ={
-    upload,
-}
-
-export default controllers
+export const controller = new Controllers()
